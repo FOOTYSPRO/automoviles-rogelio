@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { db } from "./firebase";
 import { collection, getDocs } from "firebase/firestore";
+import Image from "next/image";
 
 export default function Home() {
   const [cars, setCars] = useState<any[]>([]);
@@ -33,11 +34,15 @@ export default function Home() {
       <nav className="bg-white shadow-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-24 items-center">
           <div className="flex-shrink-0 flex items-center cursor-pointer">
-            <div className="flex items-center text-2xl md:text-3xl font-bold">
-              <span className="text-[#241865]">Automóviles</span>
-              <span className="text-[#4da359] ml-2">Rogelio</span>
-            </div>
-          </div>
+  <Image 
+    src="/logo.png" 
+    alt="Logo Automóviles Rogelio" 
+    width={220} 
+    height={65} 
+    className="h-12 md:h-16 w-auto object-contain"
+    priority
+  />
+</div>
           <div className="hidden md:flex items-center space-x-8">
             <a href="#inicio" className="text-gray-800 hover:text-[#4da359] font-medium transition-colors">Inicio</a>
             <a href="#catalogo" className="text-gray-800 hover:text-[#4da359] font-medium transition-colors">Catálogo</a>
@@ -159,4 +164,13 @@ export default function Home() {
 
     </main>
   );
+ {/* BOTÓN FLOTANTE WHATSAPP */}
+      <a 
+        href="https://wa.me/34600000000" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="fixed bottom-6 right-6 bg-[#25D366] text-white w-14 h-14 rounded-full shadow-2xl hover:scale-110 transition-transform z-50 flex items-center justify-center animate-bounce-slow"
+      >
+        <i className="fab fa-whatsapp text-3xl"></i>
+      </a> 
 }
