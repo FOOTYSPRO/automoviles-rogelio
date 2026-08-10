@@ -197,7 +197,7 @@ export default function Home() {
       </footer>
 
       {/* BOTÓN FLOTANTE WHATSAPP */}
-      
+      <a
         href="https://wa.me/34600000000"
         target="_blank"
         rel="noopener noreferrer"

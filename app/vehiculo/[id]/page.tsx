@@ -26,7 +26,7 @@ export default async function CarDetails({ params }: { params: Promise<{ id: str
       </div>
       <p className="mt-6 text-gray-700">{car.description}</p>
       <div className="mt-8 flex gap-4">
-        
+        <a
           href={`https://wa.me/34600000000?text=${encodeURIComponent(`Hola, me interesa el ${car.brand} ${car.model}`)}`}
           target="_blank"
           rel="noopener noreferrer"
