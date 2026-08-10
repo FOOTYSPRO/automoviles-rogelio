@@ -1,7 +1,7 @@
 "use client"; // Esta directiva es necesaria porque usamos estados y formularios interactivos
 
 import { useState } from 'react';
-import { db } from "../../lib/firebase";
+import { db } from "@/lib/firebase";
 import { collection, addDoc } from 'firebase/firestore';
 
 export default function AdminPanel() {
