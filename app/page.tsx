@@ -1,5 +1,5 @@
 // src/app/page.tsx
-import { db } from "@/lib/firebase";
+import { db } from "../lib/firebase";
 import { collection, getDocs, query, limit } from "firebase/firestore";
 import CarCard from "./components/CarCard"; // Lo crearemos después
 
