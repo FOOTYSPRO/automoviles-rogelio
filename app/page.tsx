@@ -4,10 +4,13 @@ import { useEffect, useState } from "react";
 import { db } from "./firebase";
 import { collection, getDocs } from "firebase/firestore";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   const [cars, setCars] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [fuelFilter, setFuelFilter] = useState("");
 
   useEffect(() => {
     async function fetchCars() {
@@ -27,22 +30,28 @@ export default function Home() {
     fetchCars();
   }, []);
 
+  const filteredCars = cars.filter((car) => {
+    const matchesSearch = `${car.brand} ${car.model}`.toLowerCase().includes(search.toLowerCase());
+    const matchesFuel = fuelFilter ? car.fuel === fuelFilter : true;
+    return matchesSearch && matchesFuel;
+  });
+
   return (
     <main className="min-h-screen bg-[#F3F4F6] text-gray-800 font-sans">
-      
+
       {/* NAVEGACIÓN */}
       <nav className="bg-white shadow-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-24 items-center">
           <div className="flex-shrink-0 flex items-center cursor-pointer">
-  <Image 
-    src="/logo.png" 
-    alt="Logo Automóviles Rogelio" 
-    width={220} 
-    height={65} 
-    className="h-12 md:h-16 w-auto object-contain"
-    priority
-  />
-</div>
+            <Image
+              src="/logo.png"
+              alt="Logo Automóviles Rogelio"
+              width={220}
+              height={65}
+              className="h-12 md:h-16 w-auto object-contain"
+              priority
+            />
+          </div>
           <div className="hidden md:flex items-center space-x-8">
             <a href="#inicio" className="text-gray-800 hover:text-[#4da359] font-medium transition-colors">Inicio</a>
             <a href="#catalogo" className="text-gray-800 hover:text-[#4da359] font-medium transition-colors">Catálogo</a>
@@ -95,20 +104,45 @@ export default function Home() {
             <div className="w-20 h-1 bg-[#4da359] mx-auto rounded"></div>
           </div>
 
+          <div className="flex flex-col sm:flex-row gap-4 mb-10 max-w-3xl mx-auto">
+            <input
+              type="text"
+              placeholder="Buscar por marca o modelo..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#4da359]"
+            />
+            <select
+              value={fuelFilter}
+              onChange={(e) => setFuelFilter(e.target.value)}
+              className="border border-gray-300 p-3 rounded-lg bg-white focus:outline-none focus:border-[#4da359]"
+            >
+              <option value="">Todos los combustibles</option>
+              <option value="Diésel">Diésel</option>
+              <option value="Gasolina">Gasolina</option>
+              <option value="Híbrido">Híbrido</option>
+              <option value="Eléctrico">Eléctrico</option>
+            </select>
+          </div>
+
           {loading ? (
             <div className="text-center py-20">
               <i className="fas fa-circle-notch fa-spin text-5xl text-[#4da359] mb-4"></i>
               <p className="text-xl font-bold text-[#241865]">Aparcando los coches...</p>
             </div>
-          ) : cars.length === 0 ? (
+          ) : filteredCars.length === 0 ? (
             <div className="text-center py-20">
               <i className="fas fa-car-side text-5xl text-gray-300 mb-4"></i>
-              <p className="text-gray-500 font-medium text-lg">No hay vehículos en el catálogo en este momento.</p>
+              <p className="text-gray-500 font-medium text-lg">No hay vehículos que coincidan con la búsqueda.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {cars.map((car) => (
-                <div key={car.id} className="bg-white rounded-2xl overflow-hidden shadow-lg hover:-translate-y-2 transition-transform duration-300 cursor-pointer relative group">
+              {filteredCars.map((car) => (
+                <Link
+                  key={car.id}
+                  href={`/vehiculo/${car.id}`}
+                  className="bg-white rounded-2xl overflow-hidden shadow-lg hover:-translate-y-2 transition-transform duration-300 cursor-pointer relative group block"
+                >
                   <div className="relative h-60 overflow-hidden bg-gray-200">
                     <img src={car.image || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&q=80"} alt={car.model} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                     {car.tag && <div className="absolute top-4 right-4 bg-[#4da359] text-white px-3 py-1 rounded-full text-xs font-bold shadow-md z-10">{car.tag}</div>}
@@ -128,7 +162,7 @@ export default function Home() {
                       <div className="flex items-center gap-2"><i className="fas fa-cogs text-[#4da359]"></i> {car.transmission}</div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           )}
@@ -162,15 +196,15 @@ export default function Home() {
         </div>
       </footer>
 
-    </main>
-  );
- {/* BOTÓN FLOTANTE WHATSAPP */}
-      <a 
-        href="https://wa.me/34600000000" 
-        target="_blank" 
-        rel="noopener noreferrer" 
+      {/* BOTÓN FLOTANTE WHATSAPP */}
+      
+        href="https://wa.me/34600000000"
+        target="_blank"
+        rel="noopener noreferrer"
         className="fixed bottom-6 right-6 bg-[#25D366] text-white w-14 h-14 rounded-full shadow-2xl hover:scale-110 transition-transform z-50 flex items-center justify-center animate-bounce-slow"
       >
         <i className="fab fa-whatsapp text-3xl"></i>
-      </a> 
+      </a>
+    </main>
+  );
 }
