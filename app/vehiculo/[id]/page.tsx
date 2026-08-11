@@ -80,10 +80,9 @@ export default async function VehiculoPage({ params }: any) {
     const kmFormat = Number(kilometros).toLocaleString('es-ES');
     const foto = car.image || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&q=80";
     
-// Creamos la URL falsa por ahora (luego pondrás el dominio real de Rogelio o tu dominio provisional)
     const urlCoche = `https://automoviles-rogelio.vercel.app/vehiculo/${car.id}`; 
-    
     const whatsappMsg = encodeURIComponent(`Hola, me interesa el ${car.brand} ${car.model} por ${precio}€.\n\nHe visto el anuncio aquí: ${urlCoche}`);
+
     return (
       <main className="min-h-screen bg-white text-gray-800 font-sans pb-20">
         
@@ -138,12 +137,30 @@ export default async function VehiculoPage({ params }: any) {
             </div>
 
             <div className="lg:col-span-5">
+              
+              {/* AÑADIDO: ETIQUETA EN LA PÁGINA DEL VEHÍCULO */}
+              {car.tag && (
+                <div className="mb-4">
+                  <span className={`inline-flex items-center px-4 py-1.5 rounded-lg text-sm font-extrabold text-white uppercase tracking-wider shadow-sm ${
+                    car.tag.toLowerCase().includes('vendido') ? 'bg-red-600' : 
+                    car.tag.toLowerCase().includes('reservado') ? 'bg-[#eab308]' : 
+                    'bg-[#b18b2c]'
+                  }`}>
+                    <i className={`mr-2 fas ${
+                      car.tag.toLowerCase().includes('vendido') ? 'fa-ban' : 
+                      car.tag.toLowerCase().includes('reservado') ? 'fa-lock' : 
+                      'fa-star'
+                    }`}></i>
+                    {car.tag}
+                  </span>
+                </div>
+              )}
+
               <h1 className="text-3xl md:text-4xl font-light text-gray-900 mb-6 uppercase tracking-wide leading-tight">
                 {car.brand} {car.model} <br/>
                 <span className="font-bold text-[#b18b2c] mt-4 block">{precio}€</span>
               </h1>
 
-              {/* AÑADIDO: Los nuevos campos en la tarjeta azul */}
               <div className="bg-[#f5f8fc] rounded-2xl p-8 mb-8">
                 <div className="grid grid-cols-2 gap-y-6 text-sm">
                   <div className="text-gray-500 font-bold">Combustible:</div>

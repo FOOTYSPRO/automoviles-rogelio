@@ -34,7 +34,6 @@ export default function AdminPanel() {
   
   const [editingId, setEditingId] = useState<string | null>(null);
   
-  // AÑADIDO: month y power al estado inicial
   const [formData, setFormData] = useState({
     brand: "", model: "", price: "", year: "", month: "", power: "", km: "",
     fuel: "", transmission: "", tag: "", description: ""
@@ -249,7 +248,10 @@ export default function AdminPanel() {
                               <img src={car.image || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=200"} alt="" className="h-full w-full object-cover" />
                             </div>
                             <div>
-                              <div className="text-sm font-bold text-gray-900">{car.brand} {car.model}</div>
+                              <div className="text-sm font-bold text-gray-900">
+                                {car.brand} {car.model}
+                                {car.tag && <span className={`ml-2 text-[10px] px-2 py-0.5 rounded-full font-bold text-white ${car.tag.includes('Vendido') ? 'bg-red-500' : car.tag.includes('Reservado') ? 'bg-yellow-500' : 'bg-green-500'}`}>{car.tag}</span>}
+                              </div>
                               <div className="text-xs text-gray-500">{car.km ? Number(String(car.km).replace(/\./g, '')).toLocaleString('es-ES') : "0"} km</div>
                             </div>
                           </td>
@@ -345,7 +347,6 @@ export default function AdminPanel() {
                       <input type="number" name="year" value={formData.year} onChange={handleInputChange} required className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
                     </div>
                     
-                    {/* AÑADIDO: Mes de matriculación */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Mes de matriculación</label>
                       <select name="month" value={formData.month} onChange={handleInputChange} className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]">
@@ -365,7 +366,6 @@ export default function AdminPanel() {
                       </select>
                     </div>
 
-                    {/* AÑADIDO: Potencia */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Potencia (CV)</label>
                       <input type="text" name="power" value={formData.power} onChange={handleInputChange} placeholder="Ej. 150" className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
@@ -375,9 +375,19 @@ export default function AdminPanel() {
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Kilómetros</label>
                       <input type="text" name="km" value={formData.km} onChange={handleInputChange} required placeholder="Ej. 104302 (sin puntos)" className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
                     </div>
+
+                    {/* AÑADIDO: ETIQUETA PROMOCIONAL AHORA ES UN SELECT */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Etiqueta Promocional</label>
-                      <input type="text" name="tag" value={formData.tag} onChange={handleInputChange} placeholder="Ej. RECIÉN LLEGADO o VENDIDO" className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
+                      <select name="tag" value={formData.tag} onChange={handleInputChange} className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]">
+                        <option value="">Ninguna</option>
+                        <option value="Reservado">Reservado</option>
+                        <option value="Vendido">Vendido</option>
+                        <option value="Nuevo">Nuevo</option>
+                        <option value="KM0">KM0</option>
+                        <option value="Rebajado">Rebajado</option>
+                        <option value="Ocasión">Ocasión</option>
+                      </select>
                     </div>
 
                     <div>
