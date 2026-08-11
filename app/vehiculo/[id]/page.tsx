@@ -1,6 +1,7 @@
 import { db } from "../../firebase";
 import { doc, getDoc, collection, query, where, getDocs, limit } from "firebase/firestore";
 import Link from "next/link";
+import GaleriaVehiculo from "../../components/GaleriaVehiculo";
 // Hemos desactivado next/image temporalmente para detectar el bug
 // import Image from "next/image";
 
@@ -80,21 +81,13 @@ export default async function VehiculoPage({ params }: any) {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             
-            {/* COLUMNA IZQUIERDA */}
+           {/* COLUMNA IZQUIERDA */}
             <div className="lg:col-span-7">
-              {/* Imagen Principal */}
-              <div className="relative aspect-[4/3] w-full bg-gray-100 rounded-xl overflow-hidden shadow-sm border border-gray-100 mb-4">
-                <img src={foto} alt={`${car.brand} ${car.model}`} className="w-full h-full object-cover" />
-              </div>
-              
-              {/* Miniaturas */}
-              <div className="grid grid-cols-5 gap-2 md:gap-4 mb-12">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className={`relative aspect-[4/3] rounded-lg overflow-hidden cursor-pointer border-2 ${i === 1 ? 'border-[#b18b2c]' : 'border-transparent hover:border-gray-300'}`}>
-                     <img src={foto} alt="Miniatura" className="w-full h-full object-cover" />
-                  </div>
-                ))}
-              </div>
+              {/* GALERÍA INTERACTIVA */}
+              <GaleriaVehiculo 
+                images={car.images && car.images.length > 0 ? car.images : [foto]} 
+                altText={`${car.brand} ${car.model}`} 
+              />
 
               {/* Descripción */}
               <h2 className="text-2xl font-bold text-[#111] mb-6">Descripción</h2>
