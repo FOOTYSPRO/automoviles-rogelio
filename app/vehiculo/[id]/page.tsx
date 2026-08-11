@@ -4,34 +4,53 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-// Forzar renderizado dinámico
 export const dynamic = 'force-dynamic';
 
 async function getCar(id: string) {
-  const docRef = doc(db, "vehiculos", id);
-  const docSnap = await getDoc(docRef);
-  if (!docSnap.exists()) return null;
-  return { id: docSnap.id, ...docSnap.data() } as any;
+  try {
+    const docRef = doc(db, "vehiculos", id);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) return null;
+    return { id: docSnap.id, ...docSnap.data() } as any;
+  } catch (error) {
+    console.error("Error obteniendo coche:", error);
+    return null;
+  }
 }
 
 async function getRelatedCars(brand: string, currentId: string) {
-  const q = query(collection(db, "vehiculos"), where("brand", "==", brand), limit(4));
-  const snapshot = await getDocs(q);
-  return snapshot.docs
-    .map(doc => ({ id: doc.id, ...doc.data() } as any))
-    .filter(car => car.id !== currentId)
-    .slice(0, 3);
+  try {
+    const q = query(collection(db, "vehiculos"), where("brand", "==", brand), limit(4));
+    const snapshot = await getDocs(q);
+    return snapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() } as any))
+      .filter(car => car.id !== currentId)
+      .slice(0, 3);
+  } catch {
+    return [];
+  }
 }
 
-export default async function VehiculoPage({ params }: { params: { id: string } }) {
-  const car = await getCar(params.id);
+// ARREGLO 1: Compatible con el nuevo Next.js (params como Promise)
+export default async function VehiculoPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
+  
+  // Resolvemos los parámetros de forma segura
+  const resolvedParams = await Promise.resolve(params);
+  const car = await getCar(resolvedParams.id);
   
   if (!car) {
     notFound();
   }
 
-  const relatedCars = await getRelatedCars(car.brand, car.id);
-  const whatsappMsg = encodeURIComponent(`Hola Rogelio, me interesa el ${car.brand} ${car.model} (${car.year}) que he visto en la web por ${Number(car.price).toLocaleString('es-ES')}€.`);
+  const relatedCars = await getRelatedCars(car.brand || "", car.id);
+  
+  // ARREGLO 2: Protección de datos (por si km es número o falta algún precio)
+  const precioFormateado = car.price ? Number(car.price).toLocaleString('es-ES') : "0";
+  const kilometros = car.km ? String(car.km).replace(/\./g, '') : "0";
+  const kmFormateado = Number(kilometros).toLocaleString('es-ES');
+  const imagenSegura = car.image || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&q=80";
+
+  const whatsappMsg = encodeURIComponent(`Hola Rogelio, me interesa el ${car.brand} ${car.model} (${car.year}) que he visto en la web por ${precioFormateado}€.`);
 
   return (
     <main className="min-h-screen bg-white text-gray-800 font-sans pb-20">
@@ -53,11 +72,11 @@ export default async function VehiculoPage({ params }: { params: { id: string } 
         
         {/* MIGAS DE PAN (Breadcrumbs) */}
         <div className="text-sm text-gray-400 mb-8 font-medium">
-          <Link href="/" className="hover:text-gray-700 transition">Homepage</Link> 
+          <Link href="/" className="hover:text-gray-700 transition">Inicio</Link> 
           <span className="mx-2">-</span> 
           <Link href="/#catalogo" className="hover:text-gray-700 transition">Vehículos de ocasión</Link>
           <span className="mx-2">-</span> 
-          <span className="hover:text-gray-700 transition cursor-pointer">{car.brand}</span>
+          <span className="hover:text-gray-700 transition">{car.brand}</span>
           <span className="mx-2">-</span> 
           <span className="text-[#b18b2c] font-semibold uppercase">{car.brand} {car.model}</span>
         </div>
@@ -69,7 +88,7 @@ export default async function VehiculoPage({ params }: { params: { id: string } 
             {/* Imagen Principal */}
             <div className="relative aspect-[4/3] w-full bg-gray-100 rounded-xl overflow-hidden shadow-sm border border-gray-100 mb-4">
               <Image 
-                src={car.image || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&q=80"} 
+                src={imagenSegura} 
                 alt={`${car.brand} ${car.model}`} 
                 fill 
                 sizes="(max-width: 1024px) 100vw, 60vw" 
@@ -82,7 +101,7 @@ export default async function VehiculoPage({ params }: { params: { id: string } 
             <div className="grid grid-cols-5 gap-2 md:gap-4 mb-12">
               {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className={`relative aspect-[4/3] rounded-lg overflow-hidden cursor-pointer border-2 ${i === 1 ? 'border-[#b18b2c]' : 'border-transparent hover:border-gray-300'}`}>
-                   <Image src={car.image} alt="Miniatura" fill className="object-cover" />
+                   <Image src={imagenSegura} alt="Miniatura" fill className="object-cover" />
                 </div>
               ))}
             </div>
@@ -111,23 +130,23 @@ export default async function VehiculoPage({ params }: { params: { id: string } 
           <div className="lg:col-span-5">
             <h1 className="text-3xl md:text-4xl font-light text-gray-900 mb-6 uppercase tracking-wide leading-tight">
               {car.brand} {car.model} <br/>
-              <span className="font-bold text-[#b18b2c] mt-4 block">{Number(car.price).toLocaleString('es-ES')}€</span>
+              <span className="font-bold text-[#b18b2c] mt-4 block">{precioFormateado}€</span>
             </h1>
 
             {/* Tarjeta Azulita de Especificaciones */}
             <div className="bg-[#f5f8fc] rounded-2xl p-8 mb-8">
               <div className="grid grid-cols-2 gap-y-6 text-sm">
                 <div className="text-gray-500 font-bold">Combustible:</div>
-                <div className="text-gray-900 font-medium text-right">{car.fuel}</div>
+                <div className="text-gray-900 font-medium text-right">{car.fuel || "-"}</div>
                 
                 <div className="text-gray-500 font-bold">Cambio:</div>
-                <div className="text-gray-900 font-medium text-right">{car.transmission}</div>
+                <div className="text-gray-900 font-medium text-right">{car.transmission || "-"}</div>
                 
                 <div className="text-gray-500 font-bold">Año:</div>
-                <div className="text-gray-900 font-medium text-right">{car.year}</div>
+                <div className="text-gray-900 font-medium text-right">{car.year || "-"}</div>
                 
                 <div className="text-gray-500 font-bold">Kilometraje:</div>
-                <div className="text-gray-900 font-medium text-right">{Number(car.km.replace(/\./g, '')).toLocaleString('es-ES')} km</div>
+                <div className="text-gray-900 font-medium text-right">{kmFormateado} km</div>
               </div>
             </div>
 
@@ -171,15 +190,15 @@ export default async function VehiculoPage({ params }: { params: { id: string } 
                 <Link href={`/vehiculo/${related.id}`} key={related.id} className="group block">
                   <div className="bg-[#1e232e] rounded-xl overflow-hidden shadow-lg hover:-translate-y-1 transition-transform relative text-white h-full flex flex-col">
                     <div className="relative aspect-[4/3] w-full bg-gray-800">
-                      <Image src={related.image} alt={related.model} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <Image src={related.image || imagenSegura} alt={related.model} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                       <div className="absolute bottom-2 right-2 bg-black/60 px-2 py-1 rounded text-xs"><i className="far fa-images"></i> 1</div>
                     </div>
                     <div className="p-5 flex-grow flex flex-col">
                       <h3 className="text-sm font-semibold uppercase truncate mb-2">{related.brand} {related.model}</h3>
-                      <p className="text-xl font-bold mb-4">{Number(related.price).toLocaleString('es-ES')}€</p>
+                      <p className="text-xl font-bold mb-4">{Number(related.price || 0).toLocaleString('es-ES')}€</p>
                       <div className="mt-auto flex gap-2 text-[11px] text-gray-300">
                         <span className="bg-[#b18b2c] text-white px-2 py-0.5 rounded font-bold">{related.year}</span>
-                        <span>{Number(related.km.replace(/\./g, '')).toLocaleString('es-ES')} km</span>
+                        <span>{Number(String(related.km || "0").replace(/\./g, '')).toLocaleString('es-ES')} km</span>
                         <span>{related.fuel}</span>
                       </div>
                     </div>
