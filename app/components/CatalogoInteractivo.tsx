@@ -68,15 +68,18 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
       {/* NAVEGACIÓN */}
       <nav className="bg-[#111] text-white sticky top-0 z-40 shadow-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-20 items-center">
-          <div className="flex-shrink-0 flex items-center cursor-pointer">
-            <Image src="/logo.png" alt="Logo Automóviles Rogelio" width={200} height={55} className="h-10 md:h-12 w-auto object-contain brightness-0 invert" priority />
-          </div>
           
+          {/* 1. Hemos envuelto el logo en un Link para que al pinchar vuelva al inicio */}
+          <Link href="/" className="flex-shrink-0 flex items-center cursor-pointer">
+            <Image src="/logo.png" alt="Logo Automóviles Rogelio" width={200} height={55} className="h-10 md:h-12 w-auto object-contain brightness-0 invert" priority />
+          </Link>
+          
+          {/* 2. Enlaces de ordenador actualizados */}
           <div className="hidden md:flex items-center space-x-8 text-sm font-semibold tracking-wide uppercase">
-            <a href="#inicio" className="hover:text-[#4da359] transition-colors">Inicio</a>
-            <a href="#nosotros" className="hover:text-[#4da359] transition-colors">Quiénes somos</a>
-            <a href="#catalogo" className="text-[#4da359] transition-colors">Vehículos de ocasión</a>
-            <a href="#contacto" className="hover:text-[#4da359] transition-colors">Contacto</a>
+            <Link href="/#inicio" className="hover:text-[#4da359] transition-colors">Inicio</Link>
+            <Link href="/quienes-somos" className="hover:text-[#4da359] transition-colors">Quiénes somos</Link>
+            <Link href="/#catalogo" className="text-[#4da359] transition-colors">Vehículos de ocasión</Link>
+            <Link href="/contacto" className="hover:text-[#4da359] transition-colors">Contacto</Link>
           </div>
 
           <div className="md:hidden flex items-center">
@@ -86,12 +89,13 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
           </div>
         </div>
 
-        {/* Menú Móvil */}
+        {/* 3. Menú Móvil actualizado y añadiendo "Contacto" */}
         {isMobileMenuOpen && (
           <div className="md:hidden bg-[#1a1a1a] px-4 pt-2 pb-4 space-y-1 shadow-lg border-t border-gray-800">
-            <a href="#inicio" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-3 text-sm font-semibold uppercase text-white hover:bg-gray-800">Inicio</a>
-            <a href="#catalogo" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-3 text-sm font-semibold uppercase text-[#4da359] hover:bg-gray-800">Vehículos de ocasión</a>
-            <a href="#nosotros" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-3 text-sm font-semibold uppercase text-white hover:bg-gray-800">Quiénes somos</a>
+            <Link href="/#inicio" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-3 text-sm font-semibold uppercase text-white hover:bg-gray-800">Inicio</Link>
+            <Link href="/#catalogo" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-3 text-sm font-semibold uppercase text-[#4da359] hover:bg-gray-800">Vehículos de ocasión</Link>
+            <Link href="/quienes-somos" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-3 text-sm font-semibold uppercase text-white hover:bg-gray-800">Quiénes somos</Link>
+            <Link href="/contacto" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-3 text-sm font-semibold uppercase text-white hover:bg-gray-800">Contacto</Link>
           </div>
         )}
       </nav>
