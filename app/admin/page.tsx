@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { db, storage, auth } from "../firebase";
-import { collection, addDoc, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, deleteDoc, updateDoc, setDoc, getDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
@@ -24,16 +24,19 @@ export default function AdminPanel() {
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(false);
   
-  const [view, setView] = useState<"list" | "form" | "leads" | "mensajes">("form");
+  // AÑADIDO: Vista de "hero" para el carrusel
+  const [view, setView] = useState<"list" | "form" | "leads" | "mensajes" | "hero">("form");
   const [cars, setCars] = useState<any[]>([]);
   const [leads, setLeads] = useState<any[]>([]);
   const [mensajes, setMensajes] = useState<any[]>([]);
+  
+  // Estado para las imágenes de la portada
+  const [heroImages, setHeroImages] = useState<string[]>([]);
   
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
   
   const [editingId, setEditingId] = useState<string | null>(null);
-  
   const [formData, setFormData] = useState({
     brand: "", model: "", price: "", year: "", month: "", power: "", km: "",
     fuel: "", transmission: "", tag: "", description: ""
@@ -43,11 +46,8 @@ export default function AdminPanel() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setIsAuthorized(true);
-      } else {
-        router.push("/admin/login");
-      }
+      if (user) setIsAuthorized(true);
+      else router.push("/admin/login");
     });
     return () => unsubscribe();
   }, [router]);
@@ -69,10 +69,19 @@ export default function AdminPanel() {
     setMensajes(msgs);
   };
 
+  // Función para obtener las imágenes de la portada
+  const fetchHeroImages = async () => {
+    const docSnap = await getDoc(doc(db, "web_config", "portada"));
+    if (docSnap.exists() && docSnap.data().images) {
+      setHeroImages(docSnap.data().images);
+    }
+  };
+
   useEffect(() => {
     if (view === "list" && isAuthorized) fetchCars();
     if (view === "leads" && isAuthorized) fetchLeads();
     if (view === "mensajes" && isAuthorized) fetchMensajes();
+    if (view === "hero" && isAuthorized) fetchHeroImages();
   }, [view, isAuthorized]);
 
   const handleInputChange = (e: any) => {
@@ -99,20 +108,23 @@ export default function AdminPanel() {
     setMessage({ text: "", type: "" });
   };
 
-  const handleFileUpload = async (e: any) => {
+  // Subida de imágenes genérica (sirve para coches y portada)
+  const handleFileUpload = async (e: any, target: "cars" | "hero" = "cars") => {
     const files = Array.from(e.target.files) as File[];
     if (files.length === 0) return;
     
     setUploadingImage(true);
     try {
-      const newUrls = [...images];
+      const newUrls = target === "cars" ? [...images] : [...heroImages];
       for (const file of files) {
-        const storageRef = ref(storage, `vehiculos/${Date.now()}_${file.name.replace(/\s/g, "_")}`);
+        const path = target === "cars" ? `vehiculos/${Date.now()}_${file.name}` : `portada/${Date.now()}_${file.name}`;
+        const storageRef = ref(storage, path);
         await uploadBytes(storageRef, file);
         const url = await getDownloadURL(storageRef);
         newUrls.push(url);
       }
-      setImages(newUrls);
+      if (target === "cars") setImages(newUrls);
+      else setHeroImages(newUrls);
     } catch (error) {
       alert("Error subiendo imagen");
     } finally {
@@ -120,17 +132,21 @@ export default function AdminPanel() {
     }
   };
 
-  const moveImage = (index: number, direction: "left" | "right") => {
+  const moveImage = (index: number, direction: "left" | "right", target: "cars" | "hero" = "cars") => {
+    const currentImages = target === "cars" ? [...images] : [...heroImages];
     if (direction === "left" && index === 0) return;
-    if (direction === "right" && index === images.length - 1) return;
-    const newImages = [...images];
+    if (direction === "right" && index === currentImages.length - 1) return;
+    
     const swapIndex = direction === "left" ? index - 1 : index + 1;
-    [newImages[index], newImages[swapIndex]] = [newImages[swapIndex], newImages[index]];
-    setImages(newImages);
+    [currentImages[index], currentImages[swapIndex]] = [currentImages[swapIndex], currentImages[index]];
+    
+    if (target === "cars") setImages(currentImages);
+    else setHeroImages(currentImages);
   };
 
-  const removeImage = (index: number) => {
-    setImages(images.filter((_, i) => i !== index));
+  const removeImage = (index: number, target: "cars" | "hero" = "cars") => {
+    if (target === "cars") setImages(images.filter((_, i) => i !== index));
+    else setHeroImages(heroImages.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -161,6 +177,20 @@ export default function AdminPanel() {
       setMessage({ text: "Error: " + error.message, type: "error" });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveHero = async () => {
+    setLoading(true);
+    setMessage({ text: "Guardando carrusel...", type: "loading" });
+    try {
+      await setDoc(doc(db, "web_config", "portada"), { images: heroImages });
+      setMessage({ text: "¡Carrusel de portada actualizado!", type: "success" });
+    } catch (error: any) {
+      setMessage({ text: "Error al guardar: " + error.message, type: "error" });
+    } finally {
+      setLoading(false);
+      setTimeout(() => setMessage({ text: "", type: "" }), 3000);
     }
   };
 
@@ -198,12 +228,18 @@ export default function AdminPanel() {
           </Link>
           <p className="text-xs text-gray-400 mt-1">Automóviles Rogelio</p>
         </div>
-        <nav className="flex-1 p-4 space-y-2 flex flex-col">
+        <nav className="flex-1 p-4 space-y-2 flex flex-col overflow-y-auto">
           <button onClick={() => { resetForm(); setView("form"); }} className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${view === "form" && !editingId ? "bg-[#4da359] text-white shadow" : "text-gray-400 hover:text-white hover:bg-gray-800"}`}>
             <i className="fas fa-plus-circle mr-2"></i> Nuevo Vehículo
           </button>
           <button onClick={() => setView("list")} className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${view === "list" ? "bg-[#4da359] text-white shadow" : "text-gray-400 hover:text-white hover:bg-gray-800"}`}>
             <i className="fas fa-car mr-2"></i> Inventario
+          </button>
+          
+          <div className="border-t border-gray-800 my-2 pt-2"></div>
+          
+          <button onClick={() => setView("hero")} className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${view === "hero" ? "bg-[#4da359] text-white shadow" : "text-gray-400 hover:text-white hover:bg-gray-800"}`}>
+            <i className="far fa-images mr-2"></i> Carrusel Portada
           </button>
           <button onClick={() => setView("leads")} className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${view === "leads" ? "bg-[#4da359] text-white shadow" : "text-gray-400 hover:text-white hover:bg-gray-800"}`}>
             <i className="fas fa-users mr-2"></i> Suscriptores
@@ -221,8 +257,9 @@ export default function AdminPanel() {
       <main className="flex-1 p-6 md:p-10 md:ml-64">
         <div className="max-w-5xl mx-auto">
           
+          {/* VISTA 1: INVENTARIO */}
           {view === "list" && (
-            <div>
+             <div>
               <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold text-gray-900">Inventario Actual</h1>
                 <span className="bg-[#4da359] text-white px-3 py-1 rounded-full text-sm font-bold shadow-sm">{cars.length} Coches</span>
@@ -272,6 +309,7 @@ export default function AdminPanel() {
             </div>
           )}
 
+          {/* VISTA 2: FORMULARIO */}
           {view === "form" && (
             <div>
               <div className="flex justify-between items-center mb-8">
@@ -293,13 +331,12 @@ export default function AdminPanel() {
               )}
 
               <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                
                 <div className="p-8 border-b border-gray-100 bg-gray-50">
                   <div className="flex justify-between items-end mb-4">
                     <h3 className="text-lg font-bold text-gray-900"><i className="far fa-images text-[#4da359] mr-2"></i> Galería de Fotos ({images.length})</h3>
                     <label className="cursor-pointer bg-[#111] hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-bold shadow transition">
                       <i className="fas fa-upload mr-2"></i> Subir Fotos
-                      <input type="file" multiple accept="image/*" onChange={handleFileUpload} className="sr-only" />
+                      <input type="file" multiple accept="image/*" onChange={(e) => handleFileUpload(e, "cars")} className="sr-only" />
                     </label>
                   </div>
                   
@@ -312,10 +349,10 @@ export default function AdminPanel() {
                       images.map((url, index) => (
                         <div key={index} className="relative w-40 h-32 flex-shrink-0 rounded-lg overflow-hidden border border-gray-200 shadow group">
                           <img src={url} alt={`Foto ${index}`} className="w-full h-full object-cover" />
-                          <button type="button" onClick={() => removeImage(index)} className="absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition shadow flex items-center justify-center"><i className="fas fa-times text-xs"></i></button>
+                          <button type="button" onClick={() => removeImage(index, "cars")} className="absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition shadow flex items-center justify-center"><i className="fas fa-times text-xs"></i></button>
                           <div className="absolute bottom-1 left-0 right-0 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition">
-                            <button type="button" onClick={() => moveImage(index, "left")} disabled={index === 0} className="bg-black/70 text-white w-6 h-6 rounded flex items-center justify-center disabled:opacity-30"><i className="fas fa-chevron-left text-xs"></i></button>
-                            <button type="button" onClick={() => moveImage(index, "right")} disabled={index === images.length - 1} className="bg-black/70 text-white w-6 h-6 rounded flex items-center justify-center disabled:opacity-30"><i className="fas fa-chevron-right text-xs"></i></button>
+                            <button type="button" onClick={() => moveImage(index, "left", "cars")} disabled={index === 0} className="bg-black/70 text-white w-6 h-6 rounded flex items-center justify-center disabled:opacity-30"><i className="fas fa-chevron-left text-xs"></i></button>
+                            <button type="button" onClick={() => moveImage(index, "right", "cars")} disabled={index === images.length - 1} className="bg-black/70 text-white w-6 h-6 rounded flex items-center justify-center disabled:opacity-30"><i className="fas fa-chevron-right text-xs"></i></button>
                           </div>
                           {index === 0 && <span className="absolute top-0 left-0 bg-[#4da359] text-white text-[10px] uppercase px-2 py-1 font-bold rounded-br-lg shadow">Portada</span>}
                         </div>
@@ -376,7 +413,6 @@ export default function AdminPanel() {
                       <input type="text" name="km" value={formData.km} onChange={handleInputChange} required placeholder="Ej. 104302 (sin puntos)" className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
                     </div>
 
-                    {/* AÑADIDO: ETIQUETA PROMOCIONAL AHORA ES UN SELECT */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Etiqueta Promocional</label>
                       <select name="tag" value={formData.tag} onChange={handleInputChange} className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]">
@@ -417,6 +453,62 @@ export default function AdminPanel() {
                   </button>
                 </div>
               </form>
+            </div>
+          )}
+
+          {/* VISTA 3: CARRUSEL PORTADA (NUEVO) */}
+          {view === "hero" && (
+            <div>
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">Imágenes de Portada</h1>
+                  <p className="text-gray-500 mt-2">Sube y organiza las fotos que irán pasando al inicio de la web.</p>
+                </div>
+              </div>
+
+              {message.text && (
+                <div className={`p-4 rounded-xl mb-8 font-medium ${message.type === 'success' ? 'bg-green-100 text-green-800' : message.type === 'error' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>
+                  {message.text}
+                </div>
+              )}
+
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="p-8 border-b border-gray-100 bg-gray-50">
+                  <div className="flex justify-between items-end mb-4">
+                    <h3 className="text-lg font-bold text-gray-900"><i className="far fa-images text-[#4da359] mr-2"></i> Carrusel Principal ({heroImages.length})</h3>
+                    <label className="cursor-pointer bg-[#111] hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-bold shadow transition">
+                      <i className="fas fa-upload mr-2"></i> Subir Fotos
+                      <input type="file" multiple accept="image/*" onChange={(e) => handleFileUpload(e, "hero")} className="sr-only" />
+                    </label>
+                  </div>
+                  
+                  {uploadingImage && <div className="text-sm text-blue-600 font-medium animate-pulse mb-4"><i className="fas fa-spinner fa-spin mr-1"></i> Subiendo imágenes a la nube...</div>}
+
+                  <div className="flex gap-4 overflow-x-auto pb-4 pt-2">
+                    {heroImages.length === 0 ? (
+                      <div className="w-full py-10 border-2 border-dashed border-gray-300 rounded-xl text-center text-gray-400">Sube algunas fotos horizontales atractivas.</div>
+                    ) : (
+                      heroImages.map((url, index) => (
+                        <div key={index} className="relative w-64 h-40 flex-shrink-0 rounded-lg overflow-hidden border border-gray-200 shadow group">
+                          <img src={url} alt={`Hero ${index}`} className="w-full h-full object-cover" />
+                          <button type="button" onClick={() => removeImage(index, "hero")} className="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition shadow flex items-center justify-center"><i className="fas fa-times"></i></button>
+                          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition">
+                            <button type="button" onClick={() => moveImage(index, "left", "hero")} disabled={index === 0} className="bg-black/70 text-white w-8 h-8 rounded flex items-center justify-center disabled:opacity-30"><i className="fas fa-chevron-left text-sm"></i></button>
+                            <button type="button" onClick={() => moveImage(index, "right", "hero")} disabled={index === heroImages.length - 1} className="bg-black/70 text-white w-8 h-8 rounded flex items-center justify-center disabled:opacity-30"><i className="fas fa-chevron-right text-sm"></i></button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Recomendación: Usa fotos panorámicas (horizontales) y con buena resolución.</p>
+                </div>
+
+                <div className="p-8 bg-gray-50 flex justify-end gap-4">
+                  <button onClick={handleSaveHero} disabled={loading || uploadingImage} className={`px-8 py-4 rounded-xl font-bold text-white transition-all shadow-md ${loading || uploadingImage ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#4da359] hover:bg-green-700'}`}>
+                    {loading ? <><i className="fas fa-spinner fa-spin mr-2"></i> Guardando...</> : "Guardar Carrusel en la Web"}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

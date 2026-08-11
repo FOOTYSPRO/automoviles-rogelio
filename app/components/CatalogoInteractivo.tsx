@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Car } from "../page";
+import { db } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[] | null }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -12,6 +14,10 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
   const [search, setSearch] = useState("");
   const [brandFilter, setBrandFilter] = useState("");
   const [sortBy, setSortBy] = useState("novedades");
+
+  // AÑADIDO: Estados para el carrusel de la portada
+  const [heroImages, setHeroImages] = useState<string[]>([]);
+  const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -24,6 +30,33 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
   }, {} as Record<string, number>);
   
   const uniqueBrands = Object.keys(brandCounts).sort();
+
+  // AÑADIDO: Descargar las fotos de portada desde Firebase
+  useEffect(() => {
+    const fetchHeroImages = async () => {
+      try {
+        const docSnap = await getDoc(doc(db, "web_config", "portada"));
+        if (docSnap.exists() && docSnap.data().images && docSnap.data().images.length > 0) {
+          setHeroImages(docSnap.data().images);
+        } else {
+          // Imagen por defecto si no hay nada subido
+          setHeroImages(["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"]);
+        }
+      } catch (error) {
+        setHeroImages(["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"]);
+      }
+    };
+    fetchHeroImages();
+  }, []);
+
+  // AÑADIDO: Animación automática cada 5 segundos
+  useEffect(() => {
+    if (heroImages.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentHeroIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [heroImages]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -102,9 +135,22 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
         )}
       </nav>
 
-      <section id="inicio" className="pt-24 pb-32 md:pt-32 md:pb-48 flex items-center justify-center text-center px-4 relative bg-cover bg-center" style={{ backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)), url('https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')" }}>
+      {/* AÑADIDO: SECCIÓN HERO CON CARRUSEL ANIMADO */}
+      <section id="inicio" className="pt-24 pb-32 md:pt-32 md:pb-48 flex items-center justify-center text-center px-4 relative overflow-hidden bg-gray-900">
+        
+        {/* Imágenes de fondo que van rotando */}
+        {heroImages.map((img, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 ease-in-out ${
+              index === currentHeroIndex ? "opacity-100" : "opacity-0"
+            }`}
+            style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)), url('${img}')` }}
+          ></div>
+        ))}
+
         <div className="max-w-5xl relative z-10 w-full">
-          <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-10 tracking-tight">
+          <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-10 tracking-tight drop-shadow-lg">
             Encuentra tu <span className="text-[#4da359]">coche</span> perfecto
           </h1>
           
@@ -185,30 +231,29 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
                   <div className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl hover:border-[#4da359] transition-all duration-300 flex flex-col h-full relative">
                     
                     <div className="relative aspect-[4/3] w-full bg-gray-100 overflow-hidden">
-  
-  {/* NUEVO: ETIQUETA DIAGONAL TIPO BANDA */}
-  {car.tag && (
-    <div className={`absolute top-5 -left-10 w-40 text-center transform -rotate-45 text-white font-extrabold py-1 shadow-lg z-20 text-[11px] uppercase tracking-wider ${
-      car.tag.toLowerCase().includes('vendido') ? 'bg-red-600' : 
-      car.tag.toLowerCase().includes('reservado') ? 'bg-[#eab308]' : 
-      'bg-[#b18b2c]'
-    }`}>
-      {car.tag}
-    </div>
-  )}
+                      
+                      {car.tag && (
+                        <div className={`absolute top-5 -left-10 w-40 text-center transform -rotate-45 text-white font-extrabold py-1 shadow-lg z-20 text-[11px] uppercase tracking-wider ${
+                          car.tag.toLowerCase().includes('vendido') ? 'bg-red-600' : 
+                          car.tag.toLowerCase().includes('reservado') ? 'bg-[#eab308]' : 
+                          'bg-[#b18b2c]'
+                        }`}>
+                          {car.tag}
+                        </div>
+                      )}
 
-  <Image 
-    src={car.image || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&q=80"} 
-    alt={`${car.brand} ${car.model}`} 
-    fill 
-    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" 
-    className="object-cover group-hover:scale-105 transition-transform duration-700" 
-  />
-  <div className="absolute bottom-0 left-0 right-0 bg-black/80 py-1 px-3 flex justify-between items-center text-[10px] text-white uppercase font-bold tracking-widest z-10">
-    <span>Automóviles Rogelio</span>
-    <i className="fas fa-camera text-gray-400"></i>
-  </div>
-</div>
+                      <Image 
+                        src={car.image || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&q=80"} 
+                        alt={`${car.brand} ${car.model}`} 
+                        fill 
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" 
+                        className="object-cover group-hover:scale-105 transition-transform duration-700" 
+                      />
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/80 py-1 px-3 flex justify-between items-center text-[10px] text-white uppercase font-bold tracking-widest z-10">
+                        <span>Automóviles Rogelio</span>
+                        <i className="fas fa-camera text-gray-400"></i>
+                      </div>
+                    </div>
 
                     <div className="p-5 flex flex-col flex-grow">
                       <h3 className="text-gray-700 font-semibold text-sm uppercase truncate tracking-wide">
@@ -234,7 +279,6 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
         </div>
       </section>
 
-      {/* BOTÓN FLOTANTE WHATSAPP ACTUALIZADO A TU NÚMERO */}
       <a href="https://wa.me/34656750372" target="_blank" rel="noopener noreferrer" aria-label="Contactar por WhatsApp" className="fixed bottom-6 right-6 bg-[#25D366] text-white w-14 h-14 rounded-full shadow-2xl hover:scale-110 transition-transform z-50 flex items-center justify-center animate-bounce-slow">
         <i className="fab fa-whatsapp text-3xl" aria-hidden="true"></i>
       </a>
