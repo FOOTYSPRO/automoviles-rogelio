@@ -104,9 +104,8 @@ export default async function VehiculoPage({ params }: any) {
             <span className="mx-2">-</span> 
             <Link href="/#catalogo" className="hover:text-gray-700 transition">Vehículos de ocasión</Link>
             <span className="mx-2">-</span> 
-            <span className="hover:text-gray-700 transition">{car.brand}</span>
-            <span className="mx-2">-</span> 
-            <span className="text-[#b18b2c] font-semibold uppercase">{car.brand} {car.model}</span>
+            {/* TRUNCAMOS ESTO POR SI EL NOMBRE ES MEGA LARGO Y ROMPE EL BREADCRUMB */}
+            <span className="text-[#b18b2c] font-semibold uppercase line-clamp-1 md:inline-block">{car.brand} {car.model}</span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -138,7 +137,6 @@ export default async function VehiculoPage({ params }: any) {
 
             <div className="lg:col-span-5">
               
-              {/* AÑADIDO: ETIQUETA EN LA PÁGINA DEL VEHÍCULO */}
               {car.tag && (
                 <div className="mb-4">
                   <span className={`inline-flex items-center px-4 py-1.5 rounded-lg text-sm font-extrabold text-white uppercase tracking-wider shadow-sm ${
@@ -212,7 +210,8 @@ export default async function VehiculoPage({ params }: any) {
                         <div className="absolute bottom-2 right-2 bg-black/60 px-2 py-1 rounded text-xs"><i className="far fa-images"></i> 1</div>
                       </div>
                       <div className="p-5 flex-grow flex flex-col">
-                        <h3 className="text-sm font-semibold uppercase truncate mb-2">{related.brand} {related.model}</h3>
+                        {/* CAMBIO AQUÍ TAMBIÉN A DOS LÍNEAS */}
+                        <h3 className="text-sm font-semibold uppercase line-clamp-2 leading-snug min-h-[2.5rem] mb-2">{related.brand} {related.model}</h3>
                         <p className="text-xl font-bold mb-4">{Number(related.price || 0).toLocaleString('es-ES')}€</p>
                         <div className="mt-auto flex gap-2 text-[11px] text-gray-300">
                           <span className="bg-[#b18b2c] text-white px-2 py-0.5 rounded font-bold">{related.year}</span>

@@ -15,7 +15,6 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
   const [brandFilter, setBrandFilter] = useState("");
   const [sortBy, setSortBy] = useState("novedades");
 
-  // AÑADIDO: Estados para el carrusel de la portada
   const [heroImages, setHeroImages] = useState<string[]>([]);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
 
@@ -31,7 +30,6 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
   
   const uniqueBrands = Object.keys(brandCounts).sort();
 
-  // AÑADIDO: Descargar las fotos de portada desde Firebase
   useEffect(() => {
     const fetchHeroImages = async () => {
       try {
@@ -39,7 +37,6 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
         if (docSnap.exists() && docSnap.data().images && docSnap.data().images.length > 0) {
           setHeroImages(docSnap.data().images);
         } else {
-          // Imagen por defecto si no hay nada subido
           setHeroImages(["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"]);
         }
       } catch (error) {
@@ -49,7 +46,6 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
     fetchHeroImages();
   }, []);
 
-  // AÑADIDO: Animación automática cada 5 segundos
   useEffect(() => {
     if (heroImages.length <= 1) return;
     const interval = setInterval(() => {
@@ -135,10 +131,8 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
         )}
       </nav>
 
-      {/* AÑADIDO: SECCIÓN HERO CON CARRUSEL ANIMADO */}
       <section id="inicio" className="pt-24 pb-32 md:pt-32 md:pb-48 flex items-center justify-center text-center px-4 relative overflow-hidden bg-gray-900">
         
-        {/* Imágenes de fondo que van rotando */}
         {heroImages.map((img, index) => (
           <div
             key={index}
@@ -256,7 +250,9 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
                     </div>
 
                     <div className="p-5 flex flex-col flex-grow">
-                      <h3 className="text-gray-700 font-semibold text-sm uppercase truncate tracking-wide">
+                      
+                      {/* CAMBIO AQUÍ: title a dos líneas (line-clamp-2) y altura mínima para que quede alineado */}
+                      <h3 className="text-gray-700 font-semibold text-sm uppercase line-clamp-2 tracking-wide min-h-[2.5rem] leading-snug">
                         {car.brand} {car.model}
                       </h3>
                       
