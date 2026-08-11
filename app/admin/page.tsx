@@ -25,8 +25,10 @@ export default function AdminPanel() {
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(false);
   
-  const [view, setView] = useState<"list" | "form">("form");
+  // AÑADIDO: "leads" a la vista
+  const [view, setView] = useState<"list" | "form" | "leads">("form");
   const [cars, setCars] = useState<any[]>([]);
+  const [leads, setLeads] = useState<any[]>([]); // AÑADIDO: Para guardar los correos
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
   
@@ -57,8 +59,16 @@ export default function AdminPanel() {
     setCars(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
   };
 
+  // AÑADIDO: Función para cargar los correos
+  const fetchLeads = async () => {
+    const querySnapshot = await getDocs(collection(db, "suscriptores"));
+    setLeads(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+  };
+
+  // AÑADIDO: Lógica para cargar coches o leads dependiendo de la pestaña
   useEffect(() => {
     if (view === "list" && isAuthorized) fetchCars();
+    if (view === "leads" && isAuthorized) fetchLeads();
   }, [view, isAuthorized]);
 
   // --- LÓGICA DE FORMULARIO Y EDICIÓN ---
@@ -189,6 +199,9 @@ export default function AdminPanel() {
           </button>
           <button onClick={() => setView("list")} className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${view === "list" ? "bg-[#4da359] text-white shadow" : "text-gray-400 hover:text-white hover:bg-gray-800"}`}>
             <i className="fas fa-list mr-2"></i> Inventario
+          </button>
+          <button onClick={() => setView("leads")} className={`w-full text-left px-4 py-3 rounded-lg font-medium transition mb-6 ${view === "leads" ? "bg-[#4da359] text-white shadow" : "text-gray-400 hover:text-white hover:bg-gray-800"}`}>
+            <i className="fas fa-users mr-2"></i> Suscriptores
           </button>
           
           {/* BOTÓN CERRAR SESIÓN */}
@@ -390,6 +403,51 @@ export default function AdminPanel() {
               </form>
             </div>
           )}
+
+          {/* VISTA 3: SUSCRIPTORES / LEADS (NUEVO) */}
+          {view === "leads" && (
+            <div>
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">Base de Datos de Clientes</h1>
+                  <p className="text-gray-500 mt-1">Correos captados a través del Footer.</p>
+                </div>
+                <span className="bg-[#111] text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm">{leads.length} Emails</span>
+              </div>
+              
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de registro</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Origen</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {leads.length === 0 ? (
+                      <tr><td colSpan={3} className="px-6 py-8 text-center text-gray-500">Aún no hay suscriptores.</td></tr>
+                    ) : (
+                      leads.map((lead) => (
+                        <tr key={lead.id} className="hover:bg-gray-50 transition">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                            <i className="far fa-envelope text-[#4da359] mr-2"></i> {lead.email}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {lead.fecha ? new Date(lead.fecha.seconds * 1000).toLocaleDateString("es-ES") : "Desconocida"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-400 font-medium">
+                            {lead.origen}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
         </div>
       </main>
     </div>
