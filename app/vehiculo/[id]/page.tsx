@@ -3,14 +3,12 @@ import { doc, getDoc, collection, query, where, getDocs, limit } from "firebase/
 import Link from "next/link";
 import GaleriaVehiculo from "../../components/GaleriaVehiculo";
 import SimuladorFinanciacion from "../../components/SimuladorFinanciacion";
-// Hemos desactivado next/image temporalmente para detectar el bug
-// import Image from "next/image";
 
 export const dynamic = 'force-dynamic';
 
 export default async function VehiculoPage({ params }: any) {
   try {
-    // 1. Extraer ID (A prueba de Next.js 14 y 15)
+    // 1. Extraer ID
     const resolvedParams = await params;
     const id = resolvedParams?.id;
 
@@ -43,14 +41,14 @@ export default async function VehiculoPage({ params }: any) {
         .slice(0, 3);
     }
 
-    // 4. Limpieza de datos por si te has dejado campos vacíos al subir el coche
+    // 4. Limpieza de datos
     const precio = car.price ? Number(car.price).toLocaleString('es-ES') : "Consultar";
     const kilometros = car.km ? String(car.km).replace(/\./g, '') : "0";
     const kmFormat = Number(kilometros).toLocaleString('es-ES');
     const foto = car.image || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&q=80";
     const whatsappMsg = encodeURIComponent(`Hola Rogelio, me interesa el ${car.brand} ${car.model} por ${precio}€.`);
 
-    // 5. Renderizado (usando <img> normal)
+    // 5. Renderizado
     return (
       <main className="min-h-screen bg-white text-gray-800 font-sans pb-20">
         
@@ -82,7 +80,7 @@ export default async function VehiculoPage({ params }: any) {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             
-           {/* COLUMNA IZQUIERDA */}
+            {/* COLUMNA IZQUIERDA */}
             <div className="lg:col-span-7">
               {/* GALERÍA INTERACTIVA */}
               <GaleriaVehiculo 
@@ -91,7 +89,7 @@ export default async function VehiculoPage({ params }: any) {
               />
 
               {/* Descripción */}
-              <h2 className="text-2xl font-bold text-[#111] mb-6">Descripción</h2>
+              <h2 className="text-2xl font-bold text-[#111] mb-6 mt-12">Descripción</h2>
               <div className="prose max-w-none text-gray-600">
                 <p className="font-bold text-gray-800 uppercase mb-4">{car.brand} {car.model} DE {car.year || "Ocasión"}</p>
                 <p className="mb-4">CON LAS SIGUIENTES PRESTACIONES A DESTACAR:</p>
@@ -133,23 +131,24 @@ export default async function VehiculoPage({ params }: any) {
                   <div className="text-gray-900 font-medium text-right">{kmFormat} km</div>
                 </div>
               </div>
-{/* SIMULADOR DE FINANCIACIÓN */}
-            {car.price && (
-              <SimuladorFinanciacion precioTotal={Number(car.price)} />
-            )}
-            
-            <div className="mb-8 mt-8">
-               {/* Aquí siguen las Redes Sociales que ya tenías... */}
-              {/* Botón WhatsApp Falso Lateral */}
-              <div className="bg-white border border-gray-100 shadow-xl rounded-2xl p-6 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-[#4da359]"></div>
-                <h3 className="font-bold text-gray-900 mb-4 text-lg">Solicitar Información</h3>
-                <a href={`https://wa.me/34600000000?text=${whatsappMsg}`} target="_blank" rel="noopener noreferrer" className="w-full bg-[#111] hover:bg-[#222] text-white font-bold py-4 rounded-lg transition-colors flex justify-center items-center gap-2">
-                  <i className="fab fa-whatsapp"></i> Contactar por WhatsApp
-                </a>
+
+              {/* SIMULADOR DE FINANCIACIÓN */}
+              {car.price && (
+                <SimuladorFinanciacion precioTotal={Number(car.price)} />
+              )}
+              
+              <div className="mb-8 mt-8">
+                {/* Botón WhatsApp */}
+                <div className="bg-white border border-gray-100 shadow-xl rounded-2xl p-6 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-[#4da359]"></div>
+                  <h3 className="font-bold text-gray-900 mb-4 text-lg">Solicitar Información</h3>
+                  <a href={`https://wa.me/34600000000?text=${whatsappMsg}`} target="_blank" rel="noopener noreferrer" className="w-full bg-[#111] hover:bg-[#222] text-white font-bold py-4 rounded-lg transition-colors flex justify-center items-center gap-2">
+                    <i className="fab fa-whatsapp"></i> Contactar por WhatsApp
+                  </a>
+                </div>
               </div>
             </div>
-          </div>
+          </div> {/* <--- ESTE ES EL DIV DEL GRID QUE HABÍAMOS BORRADO SIN QUERER */}
 
           {/* COCHES RELACIONADOS */}
           {relatedCars.length > 0 && (
@@ -183,7 +182,7 @@ export default async function VehiculoPage({ params }: any) {
     );
 
   } catch (error: any) {
-    // EL CHIVATO: SI ALGO FALLA, VEREMOS ESTO EN VEZ DE LA PANTALLA NEGRA
+    // EL CHIVATO
     return (
       <div className="min-h-screen bg-red-50 flex flex-col items-center justify-center p-6 text-center">
         <div className="bg-white p-8 rounded-2xl shadow-xl border-2 border-red-200 max-w-2xl w-full">
@@ -192,7 +191,6 @@ export default async function VehiculoPage({ params }: any) {
           <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-left overflow-auto">
             {error.message || "Error desconocido. Revisa la terminal local."}
           </div>
-          <p className="mt-6 text-sm text-gray-500">Hazle una captura a esta pantalla y pásamela.</p>
         </div>
       </div>
     );
