@@ -6,9 +6,46 @@ import SimuladorFinanciacion from "../../components/SimuladorFinanciacion";
 
 export const dynamic = 'force-dynamic';
 
+// --- NUEVO: FUNCIÓN PARA EL SEO DINÁMICO DE WHATSAPP ---
+export async function generateMetadata({ params }: any) {
+  try {
+    const resolvedParams = await params;
+    const docRef = doc(db, "vehiculos", resolvedParams?.id);
+    const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) {
+      return { title: 'Vehículo no encontrado | Automóviles Rogelio' };
+    }
+
+    const car = docSnap.data();
+    const precio = car.price ? Number(car.price).toLocaleString('es-ES') : "Consultar";
+    const titulo = `${car.brand} ${car.model} por ${precio}€`;
+    const descripcion = `Vehículo de ocasión ${car.year} con ${Number(String(car.km).replace(/\./g, '')).toLocaleString('es-ES')} km. Totalmente revisado y garantizado.`;
+    const imagen = car.image || car.images?.[0] || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&q=80";
+
+    return {
+      title: `${titulo} | Automóviles Rogelio`,
+      description: descripcion,
+      openGraph: {
+        title: titulo,
+        description: descripcion,
+        images: [{ url: imagen, width: 1200, height: 630 }],
+        type: 'website',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: titulo,
+        description: descripcion,
+        images: [imagen],
+      }
+    };
+  } catch (error) {
+    return { title: 'Vehículo | Automóviles Rogelio' };
+  }
+}
+
 export default async function VehiculoPage({ params }: any) {
   try {
-    // 1. Extraer ID
     const resolvedParams = await params;
     const id = resolvedParams?.id;
 
@@ -16,7 +53,6 @@ export default async function VehiculoPage({ params }: any) {
       throw new Error("No se ha recibido el ID del coche en la URL.");
     }
 
-    // 2. Conectar a Firebase
     const docRef = doc(db, "vehiculos", id);
     const docSnap = await getDoc(docRef);
     
@@ -30,7 +66,6 @@ export default async function VehiculoPage({ params }: any) {
 
     const car = { id: docSnap.id, ...docSnap.data() } as any;
 
-    // 3. Buscar Relacionados
     let relatedCars: any[] = [];
     if (car.brand) {
       const q = query(collection(db, "vehiculos"), where("brand", "==", car.brand), limit(4));
@@ -41,18 +76,17 @@ export default async function VehiculoPage({ params }: any) {
         .slice(0, 3);
     }
 
-    // 4. Limpieza de datos
     const precio = car.price ? Number(car.price).toLocaleString('es-ES') : "Consultar";
     const kilometros = car.km ? String(car.km).replace(/\./g, '') : "0";
     const kmFormat = Number(kilometros).toLocaleString('es-ES');
     const foto = car.image || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&q=80";
-    const whatsappMsg = encodeURIComponent(`Hola Rogelio, me interesa el ${car.brand} ${car.model} por ${precio}€.`);
+    
+    // MENSAJE DE WHATSAPP ACTUALIZADO
+    const whatsappMsg = encodeURIComponent(`Hola, me interesa el ${car.brand} ${car.model} por ${precio}€ que he visto en la web.`);
 
-    // 5. Renderizado
     return (
       <main className="min-h-screen bg-white text-gray-800 font-sans pb-20">
         
-        {/* HEADER */}
         <nav className="bg-[#111] text-white sticky top-0 z-40 shadow-md">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-20 items-center">
             <Link href="/">
@@ -66,8 +100,6 @@ export default async function VehiculoPage({ params }: any) {
         </nav>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-          
-          {/* MIGAS DE PAN */}
           <div className="text-sm text-gray-400 mb-8 font-medium">
             <Link href="/" className="hover:text-gray-700 transition">Inicio</Link> 
             <span className="mx-2">-</span> 
@@ -80,15 +112,12 @@ export default async function VehiculoPage({ params }: any) {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             
-            {/* COLUMNA IZQUIERDA */}
             <div className="lg:col-span-7">
-              {/* GALERÍA INTERACTIVA */}
               <GaleriaVehiculo 
                 images={car.images && car.images.length > 0 ? car.images : [foto]} 
                 altText={`${car.brand} ${car.model}`} 
               />
 
-              {/* Descripción */}
               <h2 className="text-2xl font-bold text-[#111] mb-6 mt-12">Descripción</h2>
               <div className="prose max-w-none text-gray-600">
                 <p className="font-bold text-gray-800 uppercase mb-4">{car.brand} {car.model} DE {car.year || "Ocasión"}</p>
@@ -108,14 +137,12 @@ export default async function VehiculoPage({ params }: any) {
               </div>
             </div>
 
-            {/* COLUMNA DERECHA */}
             <div className="lg:col-span-5">
               <h1 className="text-3xl md:text-4xl font-light text-gray-900 mb-6 uppercase tracking-wide leading-tight">
                 {car.brand} {car.model} <br/>
                 <span className="font-bold text-[#b18b2c] mt-4 block">{precio}€</span>
               </h1>
 
-              {/* Especificaciones */}
               <div className="bg-[#f5f8fc] rounded-2xl p-8 mb-8">
                 <div className="grid grid-cols-2 gap-y-6 text-sm">
                   <div className="text-gray-500 font-bold">Combustible:</div>
@@ -132,25 +159,24 @@ export default async function VehiculoPage({ params }: any) {
                 </div>
               </div>
 
-              {/* SIMULADOR DE FINANCIACIÓN */}
               {car.price && (
                 <SimuladorFinanciacion precioTotal={Number(car.price)} />
               )}
               
               <div className="mb-8 mt-8">
-                {/* Botón WhatsApp */}
                 <div className="bg-white border border-gray-100 shadow-xl rounded-2xl p-6 relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-full h-1 bg-[#4da359]"></div>
                   <h3 className="font-bold text-gray-900 mb-4 text-lg">Solicitar Información</h3>
-                  <a href={`https://wa.me/34600000000?text=${whatsappMsg}`} target="_blank" rel="noopener noreferrer" className="w-full bg-[#111] hover:bg-[#222] text-white font-bold py-4 rounded-lg transition-colors flex justify-center items-center gap-2">
-                    <i className="fab fa-whatsapp"></i> Contactar por WhatsApp
+                  
+                  {/* ENLACE DE WHATSAPP ACTUALIZADO A TU NÚMERO */}
+                  <a href={`https://wa.me/34656750372?text=${whatsappMsg}`} target="_blank" rel="noopener noreferrer" className="w-full bg-[#111] hover:bg-[#222] text-white font-bold py-4 rounded-lg transition-colors flex justify-center items-center gap-2">
+                    <i className="fab fa-whatsapp text-xl"></i> Contactar por WhatsApp
                   </a>
                 </div>
               </div>
             </div>
-          </div> {/* <--- ESTE ES EL DIV DEL GRID QUE HABÍAMOS BORRADO SIN QUERER */}
+          </div> 
 
-          {/* COCHES RELACIONADOS */}
           {relatedCars.length > 0 && (
             <div className="mt-24 border-t border-gray-100 pt-16">
               <h2 className="text-2xl font-extrabold text-[#111] mb-8">Relacionados</h2>
@@ -182,7 +208,6 @@ export default async function VehiculoPage({ params }: any) {
     );
 
   } catch (error: any) {
-    // EL CHIVATO
     return (
       <div className="min-h-screen bg-red-50 flex flex-col items-center justify-center p-6 text-center">
         <div className="bg-white p-8 rounded-2xl shadow-xl border-2 border-red-200 max-w-2xl w-full">

@@ -11,14 +11,13 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
   
   const [search, setSearch] = useState("");
   const [brandFilter, setBrandFilter] = useState("");
-  const [sortBy, setSortBy] = useState("novedades"); // NUEVO: Estado para ordenar
+  const [sortBy, setSortBy] = useState("novedades");
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const hasError = initialCars === null;
   const cars = initialCars || [];
 
-  // Calcular el número de coches por marca para el desplegable
   const brandCounts = cars.reduce((acc, car) => {
     acc[car.brand] = (acc[car.brand] || 0) + 1;
     return acc;
@@ -26,7 +25,6 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
   
   const uniqueBrands = Object.keys(brandCounts).sort();
 
-  // Cerrar el desplegable al hacer clic fuera
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -37,14 +35,12 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // NUEVO: Filtro combinado con Ordenación
   let filteredCars = cars.filter(car => {
     const matchSearch = car.model.toLowerCase().includes(search.toLowerCase()) || car.brand.toLowerCase().includes(search.toLowerCase());
     const matchBrand = brandFilter ? car.brand === brandFilter : true;
     return matchSearch && matchBrand;
   });
 
-  // Lógica de ordenación
   if (sortBy === "precio-asc") {
     filteredCars.sort((a, b) => Number(a.price) - Number(b.price));
   } else if (sortBy === "precio-desc") {
@@ -65,18 +61,16 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
   return (
     <main className="min-h-screen bg-gray-50 text-gray-800 font-sans">
       
-      {/* TOP BAR */}
       <div className="hidden md:flex bg-white text-xs py-2 px-8 justify-between items-center text-gray-900 border-b border-gray-100 font-medium tracking-wide">
         <div className="flex gap-6">
           <span><i className="fas fa-map-marker-alt text-gray-400 mr-1"></i> Avda. Principal, 12 - Marchena (Sevilla)</span>
-          <span><i className="fas fa-phone-alt text-gray-400 mr-1"></i> 600 000 000</span>
+          <span><i className="fas fa-phone-alt text-gray-400 mr-1"></i> 656 75 03 72</span>
         </div>
         <div>
           <span><i className="far fa-clock text-gray-400 mr-1"></i> LUNES - VIERNES 9:00 - 14:00 / 17:00 - 20:30</span>
         </div>
       </div>
 
-      {/* NAVEGACIÓN */}
       <nav className="bg-[#111] text-white sticky top-0 z-40 shadow-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-20 items-center">
           
@@ -108,7 +102,6 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
         )}
       </nav>
 
-      {/* HERO SECTION CON BUSCADOR Y ORDENACIÓN */}
       <section id="inicio" className="pt-24 pb-32 md:pt-32 md:pb-48 flex items-center justify-center text-center px-4 relative bg-cover bg-center" style={{ backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)), url('https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')" }}>
         <div className="max-w-5xl relative z-10 w-full">
           <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-10 tracking-tight">
@@ -116,8 +109,6 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
           </h1>
           
           <div className="relative max-w-4xl mx-auto z-50 flex flex-col md:flex-row gap-4 items-center justify-center" ref={dropdownRef}>
-            
-            {/* Buscador de Marca */}
             <div className="flex bg-white rounded-xl shadow-2xl p-2 items-center relative w-full md:w-2/3">
               <div className="flex-1">
                 <input 
@@ -159,7 +150,6 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
               )}
             </div>
 
-            {/* Selector de Ordenación (NUEVO) */}
             <div className="w-full md:w-1/3 flex-shrink-0">
               <select 
                 value={sortBy} 
@@ -173,12 +163,10 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
                 <option value="km-asc">Menos kilómetros</option>
               </select>
             </div>
-
           </div>
         </div>
       </section>
 
-      {/* CATÁLOGO ESTILO PREMIUM */}
       <section id="catalogo" className="py-20 bg-[#F4F6F9]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           {hasError ? (
@@ -234,8 +222,8 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
         </div>
       </section>
 
-      {/* BOTÓN FLOTANTE WHATSAPP */}
-      <a href="https://wa.me/34600000000" target="_blank" rel="noopener noreferrer" aria-label="Contactar por WhatsApp" className="fixed bottom-6 right-6 bg-[#25D366] text-white w-14 h-14 rounded-full shadow-2xl hover:scale-110 transition-transform z-50 flex items-center justify-center animate-bounce-slow">
+      {/* BOTÓN FLOTANTE WHATSAPP ACTUALIZADO A TU NÚMERO */}
+      <a href="https://wa.me/34656750372" target="_blank" rel="noopener noreferrer" aria-label="Contactar por WhatsApp" className="fixed bottom-6 right-6 bg-[#25D366] text-white w-14 h-14 rounded-full shadow-2xl hover:scale-110 transition-transform z-50 flex items-center justify-center animate-bounce-slow">
         <i className="fab fa-whatsapp text-3xl" aria-hidden="true"></i>
       </a>
     </main>
