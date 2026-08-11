@@ -299,34 +299,34 @@ export default function AdminPanel() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Marca (Escribe para buscar o crear)</label>
-                      <input list="brands-list" name="brand" value={formData.brand} onChange={handleInputChange} required placeholder="Ej. Audi" className="w-full bg-gray-50 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
+                      <input list="brands-list" name="brand" value={formData.brand} onChange={handleInputChange} required placeholder="Ej. Audi" className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Modelo (Se adapta a la marca)</label>
-                      <input list="models-list" name="model" value={formData.model} onChange={handleInputChange} required placeholder="Ej. Q2 Advanced" className="w-full bg-gray-50 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
+                      <input list="models-list" name="model" value={formData.model} onChange={handleInputChange} required placeholder="Ej. Q2 Advanced" className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
                     </div>
                     
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Precio (€)</label>
-                      <input type="number" name="price" value={formData.price} onChange={handleInputChange} required placeholder="23990" className="w-full bg-gray-50 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
+                      <input type="number" name="price" value={formData.price} onChange={handleInputChange} required placeholder="23990" className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Año</label>
-                      <input type="number" name="year" value={formData.year} onChange={handleInputChange} required placeholder="2022" className="w-full bg-gray-50 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
+                      <input type="number" name="year" value={formData.year} onChange={handleInputChange} required placeholder="2022" className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
                     </div>
 
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Kilómetros</label>
-                      <input type="text" name="km" value={formData.km} onChange={handleInputChange} required placeholder="Ej. 104302 (sin puntos)" className="w-full bg-gray-50 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
+                      <input type="text" name="km" value={formData.km} onChange={handleInputChange} required placeholder="Ej. 104302 (sin puntos)" className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Etiqueta Promocional</label>
-                      <input type="text" name="tag" value={formData.tag} onChange={handleInputChange} placeholder="Ej. RECIÉN LLEGADO o VENDIDO" className="w-full bg-gray-50 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
+                      <input type="text" name="tag" value={formData.tag} onChange={handleInputChange} placeholder="Ej. RECIÉN LLEGADO o VENDIDO" className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
                     </div>
 
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Combustible</label>
-                      <select name="fuel" value={formData.fuel} onChange={handleInputChange} required className="w-full bg-gray-50 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]">
+                      <select name="fuel" value={formData.fuel} onChange={handleInputChange} required className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]">
                         <option value="">Seleccionar...</option>
                         <option value="Diésel">Diésel</option>
                         <option value="Gasolina">Gasolina</option>
@@ -336,7 +336,7 @@ export default function AdminPanel() {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Transmisión</label>
-                      <select name="transmission" value={formData.transmission} onChange={handleInputChange} required className="w-full bg-gray-50 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]">
+                      <select name="transmission" value={formData.transmission} onChange={handleInputChange} required className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]">
                         <option value="">Seleccionar...</option>
                         <option value="Manual">Manual</option>
                         <option value="Automático">Automático</option>
@@ -346,7 +346,7 @@ export default function AdminPanel() {
 
                   <div className="mt-6">
                     <label className="block text-sm font-semibold text-gray-700 mb-1">Descripción y Equipamiento (Opcional)</label>
-                    <textarea name="description" value={formData.description} onChange={handleInputChange} rows={5} placeholder="- Navegador integrado&#10;- Sensores de aparcamiento&#10;- Faros LED..." className="w-full bg-gray-50 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]"></textarea>
+                    <textarea name="description" value={formData.description} onChange={handleInputChange} rows={5} placeholder="- Navegador integrado&#10;- Sensores de aparcamiento&#10;- Faros LED..." className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]"></textarea>
                   </div>
                 </div>
 
