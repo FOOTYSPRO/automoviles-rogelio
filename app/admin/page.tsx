@@ -24,18 +24,19 @@ export default function AdminPanel() {
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(false);
   
-  // AÑADIDO: "mensajes" a las vistas
   const [view, setView] = useState<"list" | "form" | "leads" | "mensajes">("form");
   const [cars, setCars] = useState<any[]>([]);
   const [leads, setLeads] = useState<any[]>([]);
-  const [mensajes, setMensajes] = useState<any[]>([]); // Estado para los mensajes
+  const [mensajes, setMensajes] = useState<any[]>([]);
   
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
   
   const [editingId, setEditingId] = useState<string | null>(null);
+  
+  // AÑADIDO: month y power al estado inicial
   const [formData, setFormData] = useState({
-    brand: "", model: "", price: "", year: "", km: "",
+    brand: "", model: "", price: "", year: "", month: "", power: "", km: "",
     fuel: "", transmission: "", tag: "", description: ""
   });
   const [images, setImages] = useState<string[]>([]);
@@ -62,10 +63,8 @@ export default function AdminPanel() {
     setLeads(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
   };
 
-  // AÑADIDO: Función para descargar los mensajes de contacto
   const fetchMensajes = async () => {
     const querySnapshot = await getDocs(collection(db, "mensajes_contacto"));
-    // Ordenamos por fecha (los más nuevos primero)
     const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     msgs.sort((a: any, b: any) => b.fecha?.seconds - a.fecha?.seconds);
     setMensajes(msgs);
@@ -85,8 +84,9 @@ export default function AdminPanel() {
     setEditingId(car.id);
     setFormData({
       brand: car.brand || "", model: car.model || "", price: car.price?.toString() || "", 
-      year: car.year?.toString() || "", km: car.km?.toString() || "", fuel: car.fuel || "", 
-      transmission: car.transmission || "", tag: car.tag || "", description: car.description || ""
+      year: car.year?.toString() || "", month: car.month || "", power: car.power?.toString() || "", 
+      km: car.km?.toString() || "", fuel: car.fuel || "", transmission: car.transmission || "", 
+      tag: car.tag || "", description: car.description || ""
     });
     setImages(car.images || (car.image ? [car.image] : []));
     setView("form");
@@ -95,7 +95,7 @@ export default function AdminPanel() {
 
   const resetForm = () => {
     setEditingId(null);
-    setFormData({ brand: "", model: "", price: "", year: "", km: "", fuel: "", transmission: "", tag: "", description: "" });
+    setFormData({ brand: "", model: "", price: "", year: "", month: "", power: "", km: "", fuel: "", transmission: "", tag: "", description: "" });
     setImages([]);
     setMessage({ text: "", type: "" });
   };
@@ -172,7 +172,6 @@ export default function AdminPanel() {
     }
   };
 
-  // Función rápida para borrar mensajes de contacto
   const handleDeleteMensaje = async (id: string) => {
     if (window.confirm("¿Borrar este mensaje?")) {
       await deleteDoc(doc(db, "mensajes_contacto", id));
@@ -193,7 +192,6 @@ export default function AdminPanel() {
   return (
     <div className="min-h-screen bg-gray-100 flex font-sans">
       
-      {/* BARRA LATERAL */}
       <aside className="w-64 bg-[#111] text-white flex flex-col shadow-2xl hidden md:flex fixed h-full z-10">
         <div className="p-6 border-b border-gray-800">
           <Link href="/">
@@ -221,11 +219,9 @@ export default function AdminPanel() {
         </nav>
       </aside>
 
-      {/* CONTENIDO PRINCIPAL */}
       <main className="flex-1 p-6 md:p-10 md:ml-64">
         <div className="max-w-5xl mx-auto">
           
-          {/* VISTA 1: INVENTARIO */}
           {view === "list" && (
             <div>
               <div className="flex justify-between items-center mb-8">
@@ -274,7 +270,6 @@ export default function AdminPanel() {
             </div>
           )}
 
-          {/* VISTA 2: FORMULARIO */}
           {view === "form" && (
             <div>
               <div className="flex justify-between items-center mb-8">
@@ -296,6 +291,7 @@ export default function AdminPanel() {
               )}
 
               <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                
                 <div className="p-8 border-b border-gray-100 bg-gray-50">
                   <div className="flex justify-between items-end mb-4">
                     <h3 className="text-lg font-bold text-gray-900"><i className="far fa-images text-[#4da359] mr-2"></i> Galería de Fotos ({images.length})</h3>
@@ -348,14 +344,42 @@ export default function AdminPanel() {
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Año</label>
                       <input type="number" name="year" value={formData.year} onChange={handleInputChange} required className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
                     </div>
+                    
+                    {/* AÑADIDO: Mes de matriculación */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Mes de matriculación</label>
+                      <select name="month" value={formData.month} onChange={handleInputChange} className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]">
+                        <option value="">Seleccionar...</option>
+                        <option value="Enero">Enero</option>
+                        <option value="Febrero">Febrero</option>
+                        <option value="Marzo">Marzo</option>
+                        <option value="Abril">Abril</option>
+                        <option value="Mayo">Mayo</option>
+                        <option value="Junio">Junio</option>
+                        <option value="Julio">Julio</option>
+                        <option value="Agosto">Agosto</option>
+                        <option value="Septiembre">Septiembre</option>
+                        <option value="Octubre">Octubre</option>
+                        <option value="Noviembre">Noviembre</option>
+                        <option value="Diciembre">Diciembre</option>
+                      </select>
+                    </div>
+
+                    {/* AÑADIDO: Potencia */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Potencia (CV)</label>
+                      <input type="text" name="power" value={formData.power} onChange={handleInputChange} placeholder="Ej. 150" className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
+                    </div>
+
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Kilómetros</label>
-                      <input type="text" name="km" value={formData.km} onChange={handleInputChange} required className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
+                      <input type="text" name="km" value={formData.km} onChange={handleInputChange} required placeholder="Ej. 104302 (sin puntos)" className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Etiqueta</label>
-                      <input type="text" name="tag" value={formData.tag} onChange={handleInputChange} className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Etiqueta Promocional</label>
+                      <input type="text" name="tag" value={formData.tag} onChange={handleInputChange} placeholder="Ej. RECIÉN LLEGADO o VENDIDO" className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]" />
                     </div>
+
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Combustible</label>
                       <select name="fuel" value={formData.fuel} onChange={handleInputChange} required className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]">
@@ -369,8 +393,9 @@ export default function AdminPanel() {
                       </select>
                     </div>
                   </div>
+
                   <div className="mt-6">
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Descripción y Equipamiento</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Descripción y Equipamiento (Opcional)</label>
                     <textarea name="description" value={formData.description} onChange={handleInputChange} rows={5} className="w-full bg-gray-50 text-gray-900 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-[#4da359]"></textarea>
                   </div>
                 </div>
@@ -385,7 +410,6 @@ export default function AdminPanel() {
             </div>
           )}
 
-          {/* VISTA 3: SUSCRIPTORES */}
           {view === "leads" && (
             <div>
               <div className="flex justify-between items-center mb-8">
@@ -420,7 +444,6 @@ export default function AdminPanel() {
             </div>
           )}
 
-          {/* VISTA 4: MENSAJES DE CONTACTO (NUEVO) */}
           {view === "mensajes" && (
             <div>
               <div className="flex justify-between items-center mb-8">

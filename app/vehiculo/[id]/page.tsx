@@ -6,7 +6,6 @@ import SimuladorFinanciacion from "../../components/SimuladorFinanciacion";
 
 export const dynamic = 'force-dynamic';
 
-// --- NUEVO: FUNCIÓN PARA EL SEO DINÁMICO DE WHATSAPP ---
 export async function generateMetadata({ params }: any) {
   try {
     const resolvedParams = await params;
@@ -81,7 +80,6 @@ export default async function VehiculoPage({ params }: any) {
     const kmFormat = Number(kilometros).toLocaleString('es-ES');
     const foto = car.image || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&q=80";
     
-    // MENSAJE DE WHATSAPP ACTUALIZADO
     const whatsappMsg = encodeURIComponent(`Hola, me interesa el ${car.brand} ${car.model} por ${precio}€ que he visto en la web.`);
 
     return (
@@ -143,6 +141,7 @@ export default async function VehiculoPage({ params }: any) {
                 <span className="font-bold text-[#b18b2c] mt-4 block">{precio}€</span>
               </h1>
 
+              {/* AÑADIDO: Los nuevos campos en la tarjeta azul */}
               <div className="bg-[#f5f8fc] rounded-2xl p-8 mb-8">
                 <div className="grid grid-cols-2 gap-y-6 text-sm">
                   <div className="text-gray-500 font-bold">Combustible:</div>
@@ -151,11 +150,17 @@ export default async function VehiculoPage({ params }: any) {
                   <div className="text-gray-500 font-bold">Cambio:</div>
                   <div className="text-gray-900 font-medium text-right">{car.transmission || "-"}</div>
                   
+                  <div className="text-gray-500 font-bold">Mes:</div>
+                  <div className="text-gray-900 font-medium text-right">{car.month || "-"}</div>
+
                   <div className="text-gray-500 font-bold">Año:</div>
                   <div className="text-gray-900 font-medium text-right">{car.year || "-"}</div>
                   
                   <div className="text-gray-500 font-bold">Kilometraje:</div>
                   <div className="text-gray-900 font-medium text-right">{kmFormat} km</div>
+
+                  <div className="text-gray-500 font-bold">Potencia:</div>
+                  <div className="text-gray-900 font-medium text-right">{car.power ? `${car.power} CV` : "-"}</div>
                 </div>
               </div>
 
@@ -168,7 +173,6 @@ export default async function VehiculoPage({ params }: any) {
                   <div className="absolute top-0 left-0 w-full h-1 bg-[#4da359]"></div>
                   <h3 className="font-bold text-gray-900 mb-4 text-lg">Solicitar Información</h3>
                   
-                  {/* ENLACE DE WHATSAPP ACTUALIZADO A TU NÚMERO */}
                   <a href={`https://wa.me/34656750372?text=${whatsappMsg}`} target="_blank" rel="noopener noreferrer" className="w-full bg-[#111] hover:bg-[#222] text-white font-bold py-4 rounded-lg transition-colors flex justify-center items-center gap-2">
                     <i className="fab fa-whatsapp text-xl"></i> Contactar por WhatsApp
                   </a>
