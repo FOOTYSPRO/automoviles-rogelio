@@ -2,6 +2,7 @@ import { db } from "../../firebase";
 import { doc, getDoc, collection, query, where, getDocs, limit } from "firebase/firestore";
 import Link from "next/link";
 import GaleriaVehiculo from "../../components/GaleriaVehiculo";
+import SimuladorFinanciacion from "../../components/SimuladorFinanciacion";
 // Hemos desactivado next/image temporalmente para detectar el bug
 // import Image from "next/image";
 
@@ -132,7 +133,13 @@ export default async function VehiculoPage({ params }: any) {
                   <div className="text-gray-900 font-medium text-right">{kmFormat} km</div>
                 </div>
               </div>
-
+{/* SIMULADOR DE FINANCIACIÓN */}
+            {car.price && (
+              <SimuladorFinanciacion precioTotal={Number(car.price)} />
+            )}
+            
+            <div className="mb-8 mt-8">
+               {/* Aquí siguen las Redes Sociales que ya tenías... */}
               {/* Botón WhatsApp Falso Lateral */}
               <div className="bg-white border border-gray-100 shadow-xl rounded-2xl p-6 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-[#4da359]"></div>
