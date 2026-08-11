@@ -80,8 +80,10 @@ export default async function VehiculoPage({ params }: any) {
     const kmFormat = Number(kilometros).toLocaleString('es-ES');
     const foto = car.image || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&q=80";
     
-    const whatsappMsg = encodeURIComponent(`Hola, me interesa el ${car.brand} ${car.model} por ${precio}€ que he visto en la web.`);
-
+// Creamos la URL falsa por ahora (luego pondrás el dominio real de Rogelio o tu dominio provisional)
+    const urlCoche = `https://automoviles-rogelio.vercel.app/vehiculo/${car.id}`; 
+    
+    const whatsappMsg = encodeURIComponent(`Hola, me interesa el ${car.brand} ${car.model} por ${precio}€.\n\nHe visto el anuncio aquí: ${urlCoche}`);
     return (
       <main className="min-h-screen bg-white text-gray-800 font-sans pb-20">
         

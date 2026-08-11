@@ -185,18 +185,30 @@ export default function CatalogoInteractivo({ initialCars }: { initialCars: Car[
                   <div className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl hover:border-[#4da359] transition-all duration-300 flex flex-col h-full relative">
                     
                     <div className="relative aspect-[4/3] w-full bg-gray-100 overflow-hidden">
-                      <Image 
-                        src={car.image || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&q=80"} 
-                        alt={`${car.brand} ${car.model}`} 
-                        fill 
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" 
-                        className="object-cover group-hover:scale-105 transition-transform duration-700" 
-                      />
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/80 py-1 px-3 flex justify-between items-center text-[10px] text-white uppercase font-bold tracking-widest">
-                        <span>Automóviles Rogelio</span>
-                        <i className="fas fa-camera text-gray-400"></i>
-                      </div>
-                    </div>
+  
+  {/* NUEVO: ETIQUETA DIAGONAL TIPO BANDA */}
+  {car.tag && (
+    <div className={`absolute top-5 -left-10 w-40 text-center transform -rotate-45 text-white font-extrabold py-1 shadow-lg z-20 text-[11px] uppercase tracking-wider ${
+      car.tag.toLowerCase().includes('vendido') ? 'bg-red-600' : 
+      car.tag.toLowerCase().includes('reservado') ? 'bg-[#eab308]' : 
+      'bg-[#b18b2c]'
+    }`}>
+      {car.tag}
+    </div>
+  )}
+
+  <Image 
+    src={car.image || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&q=80"} 
+    alt={`${car.brand} ${car.model}`} 
+    fill 
+    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" 
+    className="object-cover group-hover:scale-105 transition-transform duration-700" 
+  />
+  <div className="absolute bottom-0 left-0 right-0 bg-black/80 py-1 px-3 flex justify-between items-center text-[10px] text-white uppercase font-bold tracking-widest z-10">
+    <span>Automóviles Rogelio</span>
+    <i className="fas fa-camera text-gray-400"></i>
+  </div>
+</div>
 
                     <div className="p-5 flex flex-col flex-grow">
                       <h3 className="text-gray-700 font-semibold text-sm uppercase truncate tracking-wide">
