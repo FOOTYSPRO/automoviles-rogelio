@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db, storage } from "../firebase";
+import { db, storage, auth } from "../firebase"; // Asegúrate de que 'auth' se exporta en tu firebase.ts
 import { collection, addDoc, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 // Base de datos de marcas y modelos para el autocompletado
@@ -20,6 +22,9 @@ const CAR_DATABASE: Record<string, string[]> = {
 };
 
 export default function AdminPanel() {
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  
   const [view, setView] = useState<"list" | "form">("form");
   const [cars, setCars] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -31,8 +36,20 @@ export default function AdminPanel() {
     brand: "", model: "", price: "", year: "", km: "",
     fuel: "", transmission: "", tag: "", description: ""
   });
-  const [images, setImages] = useState<string[]>([]); // Ahora guarda directamente las URLs
+  const [images, setImages] = useState<string[]>([]); // Guarda directamente las URLs
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  // VIGILANTE DE SEGURIDAD (Firebase Auth)
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setIsAuthorized(true);
+      } else {
+        router.push("/admin/login"); // Redirige si no está logueado
+      }
+    });
+    return () => unsubscribe();
+  }, [router]);
 
   // Cargar coches para el inventario
   const fetchCars = async () => {
@@ -41,8 +58,8 @@ export default function AdminPanel() {
   };
 
   useEffect(() => {
-    if (view === "list") fetchCars();
-  }, [view]);
+    if (view === "list" && isAuthorized) fetchCars();
+  }, [view, isAuthorized]);
 
   // --- LÓGICA DE FORMULARIO Y EDICIÓN ---
   const handleInputChange = (e: any) => {
@@ -68,7 +85,7 @@ export default function AdminPanel() {
     setMessage({ text: "", type: "" });
   };
 
-  // --- LÓGICA DE IMÁGENES (SUBIDA INDIVIDUAL, REORDEN, BORRADO) ---
+  // --- LÓGICA DE IMÁGENES ---
   const handleFileUpload = async (e: any) => {
     const files = Array.from(e.target.files) as File[];
     if (files.length === 0) return;
@@ -103,10 +120,9 @@ export default function AdminPanel() {
   const removeImage = (index: number) => {
     const newImages = images.filter((_, i) => i !== index);
     setImages(newImages);
-    // Nota: Aquí se podría añadir lógica para borrarla también del Storage de Firebase
   };
 
-  // --- LÓGICA DE GUARDADO Y BORRADO DE COCHES ---
+  // --- LÓGICA DE GUARDADO Y BORRADO ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -145,8 +161,16 @@ export default function AdminPanel() {
     }
   };
 
-  // Obtener modelos basados en la marca escrita (o array vacío si es nueva)
   const availableModels = CAR_DATABASE[formData.brand] || [];
+
+  // PANTALLA DE CARGA MIENTRAS SE COMPRUEBA LA CONTRASEÑA
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4da359]"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex font-sans">
@@ -159,17 +183,22 @@ export default function AdminPanel() {
           </Link>
           <p className="text-xs text-gray-400 mt-1">Automóviles Rogelio</p>
         </div>
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-4 space-y-2 flex flex-col">
           <button onClick={() => { resetForm(); setView("form"); }} className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${view === "form" && !editingId ? "bg-[#4da359] text-white shadow" : "text-gray-400 hover:text-white hover:bg-gray-800"}`}>
             <i className="fas fa-plus-circle mr-2"></i> Nuevo Vehículo
           </button>
           <button onClick={() => setView("list")} className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${view === "list" ? "bg-[#4da359] text-white shadow" : "text-gray-400 hover:text-white hover:bg-gray-800"}`}>
             <i className="fas fa-list mr-2"></i> Inventario
           </button>
+          
+          {/* BOTÓN CERRAR SESIÓN */}
+          <button onClick={() => signOut(auth)} className="w-full text-left px-4 py-3 rounded-lg font-medium text-red-400 hover:text-red-300 hover:bg-gray-800 transition mt-auto">
+            <i className="fas fa-sign-out-alt mr-2"></i> Cerrar Sesión
+          </button>
         </nav>
       </aside>
 
-      {/* CONTENIDO PRINCIPAL (Con margen izquierdo para evitar la barra fija) */}
+      {/* CONTENIDO PRINCIPAL */}
       <main className="flex-1 p-6 md:p-10 md:ml-64">
         <div className="max-w-5xl mx-auto">
           
@@ -265,12 +294,10 @@ export default function AdminPanel() {
                         <div key={index} className="relative w-40 h-32 flex-shrink-0 rounded-lg overflow-hidden border border-gray-200 shadow group">
                           <img src={url} alt={`Foto ${index}`} className="w-full h-full object-cover" />
                           
-                          {/* Botón Borrar */}
                           <button type="button" onClick={() => removeImage(index)} className="absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition shadow flex items-center justify-center">
                             <i className="fas fa-times text-xs"></i>
                           </button>
                           
-                          {/* Controles de Movimiento */}
                           <div className="absolute bottom-1 left-0 right-0 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition">
                             <button type="button" onClick={() => moveImage(index, "left")} disabled={index === 0} className="bg-black/70 text-white w-6 h-6 rounded flex items-center justify-center disabled:opacity-30"><i className="fas fa-chevron-left text-xs"></i></button>
                             <button type="button" onClick={() => moveImage(index, "right")} disabled={index === images.length - 1} className="bg-black/70 text-white w-6 h-6 rounded flex items-center justify-center disabled:opacity-30"><i className="fas fa-chevron-right text-xs"></i></button>
@@ -284,11 +311,10 @@ export default function AdminPanel() {
                   <p className="text-xs text-gray-500 mt-2">La primera foto de la izquierda será la portada del catálogo. Usa las flechas para reordenarlas.</p>
                 </div>
 
-                {/* DETALLES TÉCNICOS CON DATALIST INTELIGENTE */}
+                {/* DETALLES TÉCNICOS */}
                 <div className="p-8">
                   <h3 className="text-lg font-bold text-gray-900 mb-6"><i className="fas fa-list text-[#4da359] mr-2"></i> Detalles Técnicos</h3>
                   
-                  {/* Etiqueta Oculta Datalists HTML5 (El buscador nativo) */}
                   <datalist id="brands-list">
                     {Object.keys(CAR_DATABASE).map(b => <option key={b} value={b} />)}
                   </datalist>
