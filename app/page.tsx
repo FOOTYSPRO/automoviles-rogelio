@@ -3,8 +3,7 @@ import { db } from "./firebase";
 import { collection, getDocs, limit, query } from "firebase/firestore";
 import CatalogoInteractivo from "./components/CatalogoInteractivo";
 
-export const revalidate = 60; // Refresca la caché en Vercel cada 60 segundos
-
+export const dynamic = 'force-dynamic'; // Fuerza a leer de Firebase en tiempo real
 // Punto 10: Interfaz TypeScript para evitar errores en producción
 export interface Car {
   id: string;
