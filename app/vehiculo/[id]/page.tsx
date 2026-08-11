@@ -109,33 +109,17 @@ export default async function VehiculoPage({ params }: any) {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-            
-            <div className="lg:col-span-7">
+
+            {/* GALERÍA */}
+            <div className="order-1 lg:col-span-7">
               <GaleriaVehiculo 
                 images={car.images && car.images.length > 0 ? car.images : [foto]} 
                 altText={`${car.brand} ${car.model}`} 
               />
-
-              <h2 className="text-2xl font-bold text-[#111] mb-6 mt-12">Descripción</h2>
-              <div className="prose max-w-none text-gray-600">
-                <p className="font-bold text-gray-800 uppercase mb-4">{car.brand} {car.model} DE {car.year || "Ocasión"}</p>
-                <p className="mb-4">CON LAS SIGUIENTES PRESTACIONES A DESTACAR:</p>
-                {car.description ? (
-                  <div className="whitespace-pre-line bg-gray-50 p-6 rounded-xl border border-gray-100 leading-relaxed">
-                    {car.description}
-                  </div>
-                ) : (
-                  <ul className="list-disc pl-5 space-y-2 font-medium">
-                    <li>Vehículo totalmente revisado</li>
-                    <li>Garantía de 12 meses incluida</li>
-                    <li>Mantenimientos al día</li>
-                    <li>Posibilidad de financiación a medida</li>
-                  </ul>
-                )}
-              </div>
             </div>
 
-            <div className="lg:col-span-5">
+            {/* PRECIO + FICHA TÉCNICA + FINANCIACIÓN + WHATSAPP */}
+            <div className="order-2 lg:col-span-5">
               
               {car.tag && (
                 <div className="mb-4">
@@ -196,6 +180,28 @@ export default async function VehiculoPage({ params }: any) {
                 </div>
               </div>
             </div>
+
+            {/* DESCRIPCIÓN */}
+            <div className="order-3 lg:col-span-7">
+              <h2 className="text-2xl font-bold text-[#111] mb-6 mt-12 lg:mt-0">Descripción</h2>
+              <div className="prose max-w-none text-gray-600">
+                <p className="font-bold text-gray-800 uppercase mb-4">{car.brand} {car.model} DE {car.year || "Ocasión"}</p>
+                <p className="mb-4">CON LAS SIGUIENTES PRESTACIONES A DESTACAR:</p>
+                {car.description ? (
+                  <div className="whitespace-pre-line bg-gray-50 p-6 rounded-xl border border-gray-100 leading-relaxed">
+                    {car.description}
+                  </div>
+                ) : (
+                  <ul className="list-disc pl-5 space-y-2 font-medium">
+                    <li>Vehículo totalmente revisado</li>
+                    <li>Garantía de 12 meses incluida</li>
+                    <li>Mantenimientos al día</li>
+                    <li>Posibilidad de financiación a medida</li>
+                  </ul>
+                )}
+              </div>
+            </div>
+
           </div> 
 
           {relatedCars.length > 0 && (
